@@ -136,6 +136,17 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
+const postStorage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, 'uploads/'),
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname);
+    cb(null, `post-${Date.now()}${ext}`);
+  }
+});
+
+const postUpload = multer({ storage: postStorage });
+
+
 app.put('/api/profile', upload.single('profile_picture'), (req, res) => {
   const { userId, name, birthdate, location, bio } = req.body;
   const profile_picture = req.file ? `/uploads/${req.file.filename}` : null;
@@ -240,19 +251,85 @@ app.get('/posts', (req, res) => {
 });
 
 // Crear nueva publicación
-app.post('/posts', (req, res) => {
-  const { user_id, title, description, image_url, location_name, coordinates } = req.body;
+app.post('/posts', postUpload.single('image'), (req, res) => {
+  const { user_id, title, description, location_name, coordinates } = req.body;
 
-  if (!user_id || !description || !image_url) {
-    return res.status(400).json({ message: 'Faltan campos requeridos' });
+  if (!user_id || !description || !req.file) {
+    return res.status(400).json({ message: 'Faltan campos requeridos o imagen' });
   }
 
-  const sql = `INSERT INTO posts (user_id, title, description, image_url, location_name, coordinates) VALUES (?, ?, ?, ?, ?, ?)`;
+  const image_url = `/uploads/${req.file.filename}`;
+
+  const sql = `
+    INSERT INTO posts (user_id, title, description, image_url, location_name, coordinates)
+    VALUES (?, ?, ?, ?, ?, ?)
+  `;
   db.query(sql, [user_id, title, description, image_url, location_name, coordinates], (err, result) => {
     if (err) return res.status(500).json({ message: 'Error al guardar publicación' });
     res.json({ success: true, postId: result.insertId });
   });
 });
+
+app.post('/posts/:postId/like', (req, res) => {
+  const { userId } = req.body;
+  const postId = req.params.postId;
+
+  if (!userId || !postId) {
+    return res.status(400).json({ message: 'Faltan datos' });
+  }
+
+  const checkQuery = `SELECT score FROM rating WHERE user_id = ? AND post_id = ?`;
+  db.query(checkQuery, [userId, postId], (err, result) => {
+    if (err) return res.status(500).json({ message: 'Error en base de datos' });
+
+    if (result.length > 0 && result[0].score === 1) {
+      // Ya tiene like, lo quitamos (score = 0)
+      const updateQuery = `UPDATE rating SET score = 0 WHERE user_id = ? AND post_id = ?`;
+      db.query(updateQuery, [userId, postId], (err) => {
+        if (err) return res.status(500).json({ message: 'Error al quitar like' });
+        return res.json({ liked: false });
+      });
+    } else if (result.length > 0) {
+      // Ya existe, lo reactivamos
+      const updateQuery = `UPDATE rating SET score = 1 WHERE user_id = ? AND post_id = ?`;
+      db.query(updateQuery, [userId, postId], (err) => {
+        if (err) return res.status(500).json({ message: 'Error al dar like' });
+        return res.json({ liked: true });
+      });
+    } else {
+      // No existe, lo insertamos
+      const insertQuery = `INSERT INTO rating (user_id, post_id, score) VALUES (?, ?, 1)`;
+      db.query(insertQuery, [userId, postId], (err) => {
+        if (err) return res.status(500).json({ message: 'Error al dar like' });
+        return res.json({ liked: true });
+      });
+    }
+  });
+});
+
+app.get('/posts/:postId/likes', (req, res) => {
+  const { postId } = req.params;
+  const sql = `SELECT COUNT(*) AS likes FROM rating WHERE post_id = ? AND score = 1`;
+  db.query(sql, [postId], (err, result) => {
+    if (err) return res.status(500).json({ message: 'Error al obtener likes' });
+    res.json(result[0]);
+  });
+});
+
+// Buscar usuarios por nombre
+app.get('/search-users', (req, res) => {
+  const q = req.query.q || '';
+  const sql = 'SELECT id, name, profile_picture FROM users WHERE name LIKE ? LIMIT 20';
+  db.query(sql, [`%${q}%`], (err, results) => {
+    if (err) {
+      console.error('❌ Error al buscar usuarios:', err);
+      return res.status(500).json({ message: 'Error en base de datos' });
+    }
+    res.json(results);
+  });
+});
+
+
 
 
 app.listen(PORT, () => {

@@ -1,0 +1,11 @@
+.wall-container {
+    max-width: 700px;
+    margin: auto;
+  }
+  
+  .card-header img {
+    object-fit: cover;
+    height: 40px;
+    width: 40px;
+  }
+  

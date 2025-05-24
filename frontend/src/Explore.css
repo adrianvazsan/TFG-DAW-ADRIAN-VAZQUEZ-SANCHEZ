@@ -1,0 +1,41 @@
+.explore-container {
+  background-image: url('./assets/mundi.jpg'); /* Cambia por tu ruta real */
+  background-size: cover;
+  background-position: center;
+  min-height: 100vh;
+  padding-top: 2rem;
+  position: relative;
+}
+
+.filters {
+  background-color: rgba(255, 255, 255, 0.9);
+  border-radius: 10px;
+  padding: 1rem 1.5rem;
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.filters .form-label {
+  margin-bottom: 0.25rem;
+  font-weight: 500;
+  color: #333;
+}
+
+.filters .form-select {
+  min-width: 200px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  padding: 0.4rem 0.75rem;
+  font-size: 1rem;
+  transition: border-color 0.3s ease;
+}
+
+.filters .form-select:focus {
+  border-color: #007bff;
+  outline: none;
+  box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+}

@@ -1,0 +1,17 @@
+.carousel-image {
+  height: 300px;
+  object-fit: cover;
+  border-radius: 10px;
+}
+
+.carousel {
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.carousel-control-prev-icon,
+.carousel-control-next-icon {
+  background-color: rgba(0, 0, 0, 0.4);
+  border-radius: 50%;
+  padding: 10px;
+}

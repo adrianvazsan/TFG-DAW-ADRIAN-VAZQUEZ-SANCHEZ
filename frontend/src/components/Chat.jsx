@@ -10,13 +10,27 @@ function ChatPage() {
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState('');
 
-  useEffect(() => {
+  // ✅ Mover fetchUsers fuera del useEffect
+  const fetchUsers = () => {
     axios.get(`http://localhost:3001/users/${currentUserId}`)
       .then(res => {
         setUsers(res.data);
-        setSelectedUser(res.data[0]);
+        if (!selectedUser && res.data.length > 0) {
+          setSelectedUser(res.data[0]);
+        }
+      })
+      .catch(err => {
+        console.error('❌ Error al cargar usuarios:', err);
       });
-  }, []);
+  };
+
+  useEffect(() => {
+    fetchUsers(); // Al cargar
+
+    const interval = setInterval(fetchUsers, 5000); // Cada 5s
+
+    return () => clearInterval(interval);
+  }, [currentUserId, selectedUser]);
 
   useEffect(() => {
     if (selectedUser) {
@@ -45,6 +59,10 @@ function ChatPage() {
     <div className="chat-container">
       <div className="chat-sidebar">
         <h5 className="sidebar-title">Chats</h5>
+        <button onClick={fetchUsers} className="btn btn-sm btn-outline-secondary mb-2">
+          🔄 Actualizar chats
+        </button>
+
         {users.map(user => (
           <div
             key={user.id}
@@ -91,5 +109,5 @@ function ChatPage() {
     </div>
   );
 }
-//a
+
 export default ChatPage;

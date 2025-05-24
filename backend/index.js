@@ -46,17 +46,35 @@ app.get('/', (req, res) => {
 app.post('/register', (req, res) => {
   const { name, email, password } = req.body;
 
+  // Validar campos vacíos
   if (!name || !email || !password) {
     return res.status(400).json({ message: 'Faltan datos' });
   }
 
+  // Validar longitud del nombre
+  if (name.trim().length < 3) {
+    return res.status(400).json({
+      message: 'El nombre debe tener al menos 3 caracteres.'
+    });
+  }
+
+  // Validar formato de la contraseña
+  const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,}$/;
+
+  if (!passwordRegex.test(password)) {
+    return res.status(400).json({
+      message: 'La contraseña debe tener al menos 8 caracteres, una mayúscula, un número y un carácter especial.'
+    });
+  }
+
+  // Encriptar y guardar
   bcrypt.hash(password, 10, (err, hash) => {
     if (err) {
       return res.status(500).json({ message: 'Error al encriptar' });
     }
 
     const query = 'INSERT INTO users (name, email, password) VALUES (?, ?, ?)';
-    db.query(query, [name, email, hash], (err, result) => {
+    db.query(query, [name.trim(), email, hash], (err, result) => {
       if (err) {
         if (err.code === 'ER_DUP_ENTRY') {
           return res.status(400).json({ message: 'Email ya existe' });
@@ -68,6 +86,8 @@ app.post('/register', (req, res) => {
     });
   });
 });
+
+
 
 app.post('/login', (req, res) => {
   const { email, password } = req.body;
@@ -329,6 +349,19 @@ app.get('/search-users', (req, res) => {
   });
 });
 
+app.get('/notifications/:userId', (req, res) => {
+  const { userId } = req.params;
+
+  const sql = `
+    SELECT COUNT(*) AS unreadCount
+    FROM messages
+    WHERE receiver_id = ? AND is_read = 0
+  `;
+  db.query(sql, [userId], (err, result) => {
+    if (err) return res.status(500).json({ error: 'Error al verificar mensajes' });
+    res.json({ unreadCount: result[0].unreadCount });
+  });
+});
 
 
 

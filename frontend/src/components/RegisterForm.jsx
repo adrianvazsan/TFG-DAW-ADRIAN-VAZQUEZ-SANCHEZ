@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import './RegisterForm.css'; // 👉 Asegúrate de tener este CSS
+import { toast } from 'react-toastify';
+import './RegisterForm.css';
 
 export default function RegisterForm() {
   const [form, setForm] = useState({ name: '', email: '', password: '' });
@@ -22,14 +23,18 @@ export default function RegisterForm() {
       });
 
       const data = await res.json();
-      alert(data.message);
 
       if (res.ok) {
-        navigate('/login');
+        toast.success(data.message || 'Registro exitoso');
+        setTimeout(() => {
+          navigate('/login');
+        }, 2000);
+      } else {
+        toast.error(data.message || 'Error al registrar');
       }
     } catch (error) {
-      alert('Error al conectar con el servidor');
       console.error(error);
+      toast.error('Error al conectar con el servidor');
     } finally {
       setLoading(false);
     }

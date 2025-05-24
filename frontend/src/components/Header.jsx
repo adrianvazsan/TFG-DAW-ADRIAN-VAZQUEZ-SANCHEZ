@@ -1,11 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import logo from '../assets/logo.jpg';
-import { FaSearch, FaRegComments, FaUserCircle } from 'react-icons/fa';
+import { FaSearch, FaRegComments } from 'react-icons/fa';
 import './Header.css';
 
 function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [user, setUser] = useState(null);
+  const [showNotification, setShowNotification] = useState(false);
   const menuRef = useRef(null);
   const navigate = useNavigate();
 
@@ -19,24 +22,61 @@ function Header() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  useEffect(() => {
+    const userId = localStorage.getItem('userId');
+    if (userId) {
+      axios
+        .get('http://localhost:3000/api/profile', {
+          headers: { 'x-user-id': userId }
+        })
+        .then(res => setUser(res.data))
+        .catch(err => console.error('❌ Error al cargar usuario en Header', err));
+    }
+  }, []);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const userId = localStorage.getItem('userId');
+      if (userId) {
+        fetch(`http://localhost:3001/notifications/${userId}`)
+          .then(res => res.json())
+          .then(data => {
+            if (data.unreadCount > 0) {
+              setShowNotification(true);
+            } else {
+              setShowNotification(false);
+            }
+          })
+          .catch(err => {
+            console.error('❌ Error al obtener notificaciones:', err);
+            setShowNotification(false);
+          });
+      }
+    }, 5000); // Cada 5 segundos
+
+    return () => clearInterval(interval);
+  }, []);
+
   const handleLogout = () => {
-    localStorage.removeItem('token'); // o lo que uses para sesión
+    localStorage.clear();
     setMenuOpen(false);
-    navigate('/login'); // o la ruta que uses para login
+    navigate('/login');
   };
 
   return (
     <nav className="navbar navbar-expand-lg navbar-light custom-header">
       <div className="container-fluid d-flex justify-content-between align-items-center">
+        {/* Logo y navegación */}
         <div className="d-flex align-items-center gap-3">
-          <Link className="navbar-brand" to="/">
+          <Link className="navbar-brand" to="/home">
             <img src={logo} alt="SkyPath" style={{ height: '80px' }} />
           </Link>
-          <Link className="nav-link fw-bold" to="/" style={{ color: '#555' }}>inicio</Link>
+          <Link className="nav-link fw-bold" to="/home" style={{ color: '#555' }}>inicio</Link>
           <Link className="nav-link" to="/wall" style={{ color: '#000' }}>muro</Link>
           <Link className="nav-link" to="/explore" style={{ color: '#000' }}>mapa</Link>
         </div>
 
+        {/* Barra de búsqueda */}
         <div className="search-bar d-flex align-items-center bg-white rounded px-2">
           <FaSearch style={{ marginRight: '8px', color: '#666' }} />
           <input
@@ -48,53 +88,40 @@ function Header() {
           <button className="btn btn-sm btn-link text-decoration-none text-dark">✕</button>
         </div>
 
+        {/* Usuario */}
         <div className="d-flex align-items-center gap-3" ref={menuRef}>
-          <Link to="/Chat" className="nav-link">
+          <Link to="/Chat" className="nav-link position-relative">
             <FaRegComments size={24} style={{ cursor: 'pointer', color: 'black' }} />
+            {showNotification && (
+              <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                ●
+              </span>
+            )}
           </Link>
 
-          <div style={{ position: 'relative' }}>
-            <FaUserCircle
-              size={32}
-              style={{ cursor: 'pointer', color: 'black' }}
-              onClick={() => setMenuOpen(!menuOpen)}
-            />
-            {menuOpen && (
-              <div style={{
-                position: 'absolute',
-                right: 0,
-                top: '110%',
-                backgroundColor: '#fff',
-                border: '1px solid #ccc',
-                borderRadius: '8px',
-                boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
-                minWidth: '160px',
-                zIndex: 1000
-              }}>
-                <Link to="/profile" className="dropdown-item" style={menuItemStyle}>
-                  Perfil
-                </Link>
-                <button onClick={handleLogout} className="dropdown-item" style={{ ...menuItemStyle, borderTop: '1px solid #eee' }}>
-                  Cerrar sesión
-                </button>
-              </div>
-            )}
-          </div>
+          {user && (
+            <div className="user-menu" onClick={() => setMenuOpen(!menuOpen)}>
+              <img
+                src={user.profile_picture || '/default-avatar.png'}
+                alt="avatar"
+                className="user-avatar"
+              />
+              <span className="user-name">{user.name}</span>
+
+              {menuOpen && (
+                <div className="user-dropdown">
+                  <Link to="/profile" className="dropdown-item">Perfil</Link>
+                  <button onClick={handleLogout} className="dropdown-item" style={{ borderTop: '1px solid #eee' }}>
+                    Cerrar sesión
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </nav>
   );
 }
-
-const menuItemStyle = {
-  padding: '10px 15px',
-  width: '100%',
-  textAlign: 'left',
-  background: 'none',
-  border: 'none',
-  cursor: 'pointer',
-  textDecoration: 'none',
-  color: '#333'
-};
 
 export default Header;

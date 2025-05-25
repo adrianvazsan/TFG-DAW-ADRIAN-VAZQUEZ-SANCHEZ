@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 24-05-2025 a las 20:23:00
+-- Tiempo de generación: 25-05-2025 a las 17:40:04
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -46,24 +46,28 @@ CREATE TABLE `messages` (
   `sender_id` int(11) DEFAULT NULL,
   `receiver_id` int(11) DEFAULT NULL,
   `message` text DEFAULT NULL,
-  `sent_at` datetime DEFAULT current_timestamp()
+  `sent_at` datetime DEFAULT current_timestamp(),
+  `is_read` tinyint(1) DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Volcado de datos para la tabla `messages`
 --
 
-INSERT INTO `messages` (`message_id`, `sender_id`, `receiver_id`, `message`, `sent_at`) VALUES
-(1, 3, 1, 'hola', '2025-05-21 15:07:35'),
-(2, 1, 7, 'adios', '2025-05-21 15:09:39'),
-(3, 1, 8, 'adios', '2025-05-21 15:16:13'),
-(4, 1, 3, 'hola', '2025-05-21 17:30:31'),
-(5, 1, 3, 'hola', '2025-05-22 11:55:50'),
-(6, 10, 1, 'hola', '2025-05-22 11:57:24'),
-(7, 11, 5, 'a', '2025-05-24 13:50:58'),
-(8, 12, 11, 'hola', '2025-05-24 14:56:37'),
-(9, 11, 14, 'hola', '2025-05-24 20:00:37'),
-(10, 14, 11, 'adios', '2025-05-24 20:04:26');
+INSERT INTO `messages` (`message_id`, `sender_id`, `receiver_id`, `message`, `sent_at`, `is_read`) VALUES
+(1, 14, 1, 'hola', '2025-05-21 15:07:35', 0),
+(2, 1, 14, 'adios', '2025-05-21 15:09:39', 1),
+(3, 1, 8, 'adios', '2025-05-21 15:16:13', 0),
+(4, 1, 14, 'hola', '2025-05-21 17:30:31', 1),
+(5, 1, 3, 'hola', '2025-05-22 11:55:50', 0),
+(6, 10, 1, 'hola', '2025-05-22 11:57:24', 0),
+(7, 11, 14, 'a', '2025-05-24 13:50:58', 1),
+(8, 12, 11, 'hola', '2025-05-24 14:56:37', 1),
+(9, 11, 14, 'hola', '2025-05-24 20:00:37', 1),
+(10, 14, 11, 'adios', '2025-05-24 20:04:26', 1),
+(11, 14, 5, 'adios', '2025-05-25 17:06:48', 0),
+(12, 14, 11, 'asasas', '2025-05-25 17:07:09', 1),
+(13, 11, 12, 'a', '2025-05-25 17:10:16', 0);
 
 -- --------------------------------------------------------
 
@@ -113,6 +117,18 @@ CREATE TABLE `ratings` (
   `score` int(11) DEFAULT NULL CHECK (`score` between 1 and 5)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Volcado de datos para la tabla `ratings`
+--
+
+INSERT INTO `ratings` (`rating_id`, `user_id`, `post_id`, `score`) VALUES
+(2, 14, 30, 1),
+(3, 14, 29, 1),
+(4, 14, 28, 1),
+(5, 14, 27, 1),
+(7, 14, 31, 1),
+(13, 11, 27, 1);
+
 -- --------------------------------------------------------
 
 --
@@ -148,7 +164,7 @@ INSERT INTO `users` (`id`, `name`, `email`, `password`, `birthdate`, `location`,
 (10, 'Joya', 'PaolaHM1999@gmail.com', '$2b$10$I5l1VwiDqNkdhAVpjY/zC.oF6kRXce8gB71InTgMT/41LkVZUWO5m', '2025-06-11', 'sevilla', '/uploads/profile-1748108533739.jpg', 'Programador frontend', '2025-05-22 11:50:43', 'user'),
 (11, 'barea', 'JuanmaGamex@hotmail.com', '$2b$10$8TN.S17hsc9g1DqS0WUxVeG0GlpDYdQ1IIroxWsvdpAZxGS8Jk81a', '1978-03-16', 'madrid', '/uploads/profile-1748088153781.jpg', 'jkcvjkchkjhhhhhhhhhhhhhc', '2025-05-24 12:43:30', 'user'),
 (12, 'alejandro', 'alejandro@gmail.com', '$2b$10$C63bYvzcRJcuuE26uY13auc2DxIB3yv.UhztPOSrVfVAkYppGc38W', NULL, NULL, '/uploads/profile-1748091364355.jpg', NULL, '2025-05-24 13:02:23', 'user'),
-(14, 'dani', '222demayodel2002@gmail.com', '$2b$10$CP3dQiq0l/lGK/Hw13yeUeOQdp.jICkQRD2kfNv9YiYK4AqXA0TNy', NULL, NULL, '/uploads/profile2.jpg', NULL, '2025-05-24 19:37:43', 'user'),
+(14, 'dani', '222demayodel2002@gmail.com', '$2b$10$CP3dQiq0l/lGK/Hw13yeUeOQdp.jICkQRD2kfNv9YiYK4AqXA0TNy', '2000-07-21', 'sevilla', '/uploads/profile2.jpg', '\"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.\"', '2025-05-24 19:37:43', 'user'),
 (25, 'Ana Torres', 'ana1@example.com', '$2b$10$CZZyyKU4v5M97MpRLPnKcOH3lcbWlW9z3REaS7WQ7rZaP.CQey0ZK', '1992-05-10', 'Madrid', '/uploads/profile-1748108533739.jpg', 'Amante de los viajes y la fotografía.', '2025-05-24 19:52:26', 'user'),
 (26, 'Carlos Díaz', 'carlos1@example.com', '$2b$10$CZZyyKU4v5M97MpRLPnKcOH3lcbWlW9z3REaS7WQ7rZaP.CQey0ZK', '1987-11-23', 'Barcelona', '/uploads/profile-1748108533739.jpg', 'Explorador urbano y runner.', '2025-05-24 19:52:26', 'user'),
 (27, 'Lucía Gómez', 'lucia1@example.com', '$2b$10$CZZyyKU4v5M97MpRLPnKcOH3lcbWlW9z3REaS7WQ7rZaP.CQey0ZK', '1995-07-18', 'Sevilla', '/uploads/profile3.jpg', 'Diseñadora gráfica freelance.', '2025-05-24 19:52:26', 'admin'),
@@ -211,7 +227,7 @@ ALTER TABLE `comments`
 -- AUTO_INCREMENT de la tabla `messages`
 --
 ALTER TABLE `messages`
-  MODIFY `message_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `message_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT de la tabla `posts`
@@ -223,7 +239,7 @@ ALTER TABLE `posts`
 -- AUTO_INCREMENT de la tabla `ratings`
 --
 ALTER TABLE `ratings`
-  MODIFY `rating_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `rating_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT de la tabla `users`

@@ -106,8 +106,8 @@ export default function Profile() {
               <ul className="list-group">
                 <li className="list-group-item"><strong>Correo:</strong> {user.email}</li>
                 <li className="list-group-item"><strong>Ubicación:</strong> {user.location || 'No disponible'}</li>
-                <li className="list-group-item"><strong>Biografía:</strong> {user.bio || 'No disponible'}</li>
                 <li className="list-group-item"><strong>Fecha de nacimiento:</strong> {user.birthdate ? new Date(user.birthdate).toLocaleDateString() : 'No disponible'}</li>
+                <li className="list-group-item"><strong>Biografía:</strong> {user.bio || 'No disponible'}</li>
               </ul>
             </div>
           </div>

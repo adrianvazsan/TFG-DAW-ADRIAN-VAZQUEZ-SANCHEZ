@@ -2,13 +2,14 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import logo from '../assets/logo.jpg';
-import { FaSearch, FaRegComments } from 'react-icons/fa';
+import { FaSearch} from 'react-icons/fa';
+import { FiMessageSquare } from 'react-icons/fi';
 import './Header.css';
 
 function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [user, setUser] = useState(null);
-  const [showNotification, setShowNotification] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
   const menuRef = useRef(null);
   const navigate = useNavigate();
 
@@ -41,15 +42,11 @@ function Header() {
         fetch(`http://localhost:3001/notifications/${userId}`)
           .then(res => res.json())
           .then(data => {
-            if (data.unreadCount > 0) {
-              setShowNotification(true);
-            } else {
-              setShowNotification(false);
-            }
+           setUnreadCount(data.unreadCount || 0);
           })
           .catch(err => {
             console.error('❌ Error al obtener notificaciones:', err);
-            setShowNotification(false);
+            
           });
       }
     }, 5000); // Cada 5 segundos
@@ -87,17 +84,24 @@ function Header() {
           />
           <button className="btn btn-sm btn-link text-decoration-none text-dark">✕</button>
         </div>
-
         {/* Usuario */}
         <div className="d-flex align-items-center gap-3" ref={menuRef}>
           <Link to="/Chat" className="nav-link position-relative">
-            <FaRegComments size={24} style={{ cursor: 'pointer', color: 'black' }} />
-            {showNotification && (
-              <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                ●
-              </span>
-            )}
-          </Link>
+            <FiMessageSquare
+              size={24}
+              style={{
+                cursor: 'pointer',
+                color: unreadCount > 0 ? 'red' : 'black',
+                transition: 'color 0.3s ease'
+              }}
+              />
+              {unreadCount > 0 && (
+                <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
+              )}
+            </Link>
+
 
           {user && (
             <div className="user-menu" onClick={() => setMenuOpen(!menuOpen)}>

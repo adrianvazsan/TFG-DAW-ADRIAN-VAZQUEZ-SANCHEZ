@@ -9,6 +9,7 @@ const center = { lat: 40.4168, lng: -3.7038 }; // Madrid de ejemplo
 
 const Wall = () => {
   const [posts, setPosts] = useState([]);
+  const [likes, setLikes] = useState({});
   const [newPost, setNewPost] = useState({
     title: '',
     description: '',
@@ -90,6 +91,43 @@ const Wall = () => {
     }
   };
 
+  const fetchLikes = async () => {
+  try {
+    const res = await axios.get('http://localhost:3000/posts');
+    setPosts(res.data);
+
+    const likesData = {};
+    for (const post of res.data) {
+      const likeRes = await axios.get(`http://localhost:3000/posts/${post.post_id}/likes`);
+      likesData[post.post_id] = likeRes.data.likes;
+    }
+    setLikes(likesData);
+  } catch (err) {
+    console.error('Error al cargar likes', err);
+  }
+};
+const handleLike = async (postId) => {
+  try {
+    const userId = localStorage.getItem('userId');
+    const res = await axios.post(`http://localhost:3000/posts/${postId}/like`, { userId });
+    
+    // Actualizar conteo después del like
+    const updatedLikeRes = await axios.get(`http://localhost:3000/posts/${postId}/likes`);
+    setLikes(prev => ({ ...prev, [postId]: updatedLikeRes.data.likes }));
+  } catch (err) {
+    console.error('Error al dar like', err);
+  }
+};
+const handleShare = (postId) => {
+  const shareUrl = `${window.location.origin}/posts/${postId}`; // o personalízalo
+  navigator.clipboard.writeText(shareUrl)
+    .then(() => alert('¡Enlace copiado al portapapeles!'))
+    .catch(err => console.error('Error al copiar', err));
+};
+
+
+
+
   return (
     <div className="container mt-4">
       <button className="btn btn-success mb-3" onClick={() => setShowForm(true)}>➕ Publicar</button>
@@ -153,8 +191,12 @@ const Wall = () => {
             {post.location_name && <p><strong>Ubicación:</strong> {post.location_name}</p>}
             {post.coordinates && <p><strong>Coordenadas:</strong> {post.coordinates}</p>}
             <div className="d-flex gap-3">
-              <button className="btn btn-outline-danger btn-sm">❤️ Like</button>
-              <button className="btn btn-outline-primary btn-sm">🔗 Compartir</button>
+              <button className="btn btn-outline-danger btn-sm" onClick={() => handleLike(post.post_id)}>
+                ❤️ Like ({likes[post.post_id] || 0})
+              </button>
+              <button className="btn btn-outline-primary btn-sm" onClick={() => handleShare(post.post_id)}>
+                🔗 Compartir
+              </button>
             </div>
           </div>
         </div>

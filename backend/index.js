@@ -298,27 +298,20 @@ app.post('/posts/:postId/like', (req, res) => {
     return res.status(400).json({ message: 'Faltan datos' });
   }
 
-  const checkQuery = `SELECT score FROM rating WHERE user_id = ? AND post_id = ?`;
+  const checkQuery = `SELECT * FROM ratings WHERE user_id = ? AND post_id = ?`;
   db.query(checkQuery, [userId, postId], (err, result) => {
     if (err) return res.status(500).json({ message: 'Error en base de datos' });
 
-    if (result.length > 0 && result[0].score === 1) {
-      // Ya tiene like, lo quitamos (score = 0)
-      const updateQuery = `UPDATE rating SET score = 0 WHERE user_id = ? AND post_id = ?`;
-      db.query(updateQuery, [userId, postId], (err) => {
+    if (result.length > 0) {
+      // Ya existe like, entonces lo quitamos eliminando la fila
+      const deleteQuery = `DELETE FROM ratings WHERE user_id = ? AND post_id = ?`;
+      db.query(deleteQuery, [userId, postId], (err) => {
         if (err) return res.status(500).json({ message: 'Error al quitar like' });
         return res.json({ liked: false });
       });
-    } else if (result.length > 0) {
-      // Ya existe, lo reactivamos
-      const updateQuery = `UPDATE rating SET score = 1 WHERE user_id = ? AND post_id = ?`;
-      db.query(updateQuery, [userId, postId], (err) => {
-        if (err) return res.status(500).json({ message: 'Error al dar like' });
-        return res.json({ liked: true });
-      });
     } else {
-      // No existe, lo insertamos
-      const insertQuery = `INSERT INTO rating (user_id, post_id, score) VALUES (?, ?, 1)`;
+      // No existe like, lo insertamos
+      const insertQuery = `INSERT INTO ratings (user_id, post_id, score) VALUES (?, ?, 1)`;
       db.query(insertQuery, [userId, postId], (err) => {
         if (err) return res.status(500).json({ message: 'Error al dar like' });
         return res.json({ liked: true });
@@ -327,9 +320,10 @@ app.post('/posts/:postId/like', (req, res) => {
   });
 });
 
+
 app.get('/posts/:postId/likes', (req, res) => {
   const { postId } = req.params;
-  const sql = `SELECT COUNT(*) AS likes FROM rating WHERE post_id = ? AND score = 1`;
+  const sql = `SELECT COUNT(*) AS likes FROM ratings WHERE post_id = ? AND score = 1`;
   db.query(sql, [postId], (err, result) => {
     if (err) return res.status(500).json({ message: 'Error al obtener likes' });
     res.json(result[0]);
@@ -362,6 +356,41 @@ app.get('/notifications/:userId', (req, res) => {
     res.json({ unreadCount: result[0].unreadCount });
   });
 });
+app.put('/messages/read/:receiverId/:senderId', (req, res) => {
+  const { receiverId, senderId } = req.params;
+  const sql = `
+    UPDATE messages
+    SET is_read = 1
+    WHERE receiver_id = ? AND sender_id = ? AND is_read = 0
+  `;
+  db.query(sql, [receiverId, senderId], (err) => {
+    if (err) return res.status(500).json({ message: 'Error al marcar como leídos' });
+    res.json({ success: true });
+  });
+});
+
+// Obtener usuarios (excepto yo) con cantidad de mensajes no leídos
+app.get('/users-with-unread/:userId', (req, res) => {
+  const { userId } = req.params;
+
+  const sql = `
+    SELECT u.id, u.name, u.profile_picture,
+           COUNT(m.message_id) AS unreadCount
+    FROM users u
+    LEFT JOIN messages m 
+      ON u.id = m.sender_id 
+     AND m.receiver_id = ? 
+     AND m.is_read = 0
+    WHERE u.id != ?
+    GROUP BY u.id
+  `;
+
+  db.query(sql, [userId, userId], (err, results) => {
+    if (err) return res.status(500).json({ error: 'Error al obtener usuarios con mensajes no leídos' });
+    res.json(results);
+  });
+});
+
 
 
 

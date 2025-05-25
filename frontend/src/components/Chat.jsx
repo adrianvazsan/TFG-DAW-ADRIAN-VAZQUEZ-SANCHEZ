@@ -10,9 +10,8 @@ function ChatPage() {
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState('');
 
-  // ✅ Mover fetchUsers fuera del useEffect
   const fetchUsers = () => {
-    axios.get(`http://localhost:3001/users/${currentUserId}`)
+    axios.get(`http://localhost:3001/users-with-unread/${currentUserId}`)
       .then(res => {
         setUsers(res.data);
         if (!selectedUser && res.data.length > 0) {
@@ -25,17 +24,20 @@ function ChatPage() {
   };
 
   useEffect(() => {
-    fetchUsers(); // Al cargar
-
-    const interval = setInterval(fetchUsers, 5000); // Cada 5s
-
+    fetchUsers();
+    const interval = setInterval(fetchUsers, 5000);
     return () => clearInterval(interval);
   }, [currentUserId, selectedUser]);
 
   useEffect(() => {
     if (selectedUser) {
+      // Obtener mensajes
       axios.get(`http://localhost:3001/messages/${currentUserId}/${selectedUser.id}`)
         .then(res => setMessages(res.data));
+
+      // Marcar como leídos los mensajes recibidos
+      axios.put(`http://localhost:3001/messages/read/${currentUserId}/${selectedUser.id}`)
+        .catch(err => console.error('❌ Error al marcar mensajes como leídos', err));
     }
   }, [selectedUser]);
 
@@ -64,15 +66,23 @@ function ChatPage() {
         </button>
 
         {users.map(user => (
-          <div
-            key={user.id}
-            className={`chat-user ${selectedUser?.id === user.id ? 'active' : ''}`}
-            onClick={() => setSelectedUser(user)}
-          >
-            <img src={user.profile_picture || '/default-avatar.png'} alt={user.name} />
-            <span>{user.name}</span>
-          </div>
-        ))}
+  <div
+    key={user.id}
+    className={`chat-user ${selectedUser?.id === user.id ? 'active' : ''}`}
+    onClick={() => setSelectedUser(user)}
+  >
+    <img src={user.profile_picture || '/default-avatar.png'} alt={user.name} />
+    <span>{user.name}</span>
+
+    {/* NUEVO: Mostrar contador si tiene mensajes no leídos */}
+    {user.unreadCount > 0 && (
+      <span className="badge bg-danger ms-auto">
+        {user.unreadCount > 9 ? '9+' : user.unreadCount}
+      </span>
+    )}
+  </div>
+))}
+
       </div>
 
       <div className="chat-main">

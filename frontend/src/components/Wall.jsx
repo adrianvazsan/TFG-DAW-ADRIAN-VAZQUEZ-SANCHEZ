@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { GoogleMap, LoadScript, Marker } from '@react-google-maps/api';
+import { toast } from 'react-toastify'; // Sólo importamos toast, no ToastContainer aquí
+import 'react-toastify/dist/ReactToastify.css';
 import './Wall.css';
 import profilePic from '../assets/bad.png';
 
@@ -28,8 +30,16 @@ const Wall = () => {
     try {
       const res = await axios.get('http://localhost:3000/posts');
       setPosts(res.data);
+
+      const likesData = {};
+      for (const post of res.data) {
+        const likeRes = await axios.get(`http://localhost:3000/posts/${post.post_id}/likes`);
+        likesData[post.post_id] = likeRes.data.likes;
+      }
+      setLikes(likesData);
     } catch (err) {
-      console.error('Error al cargar posts', err);
+      console.error('Error al cargar posts o likes', err);
+      toast.error('Error al cargar publicaciones');
     }
   };
 
@@ -49,14 +59,15 @@ const Wall = () => {
     const lat = e.latLng.lat();
     const lng = e.latLng.lng();
     setSelectedLocation({ lat, lng });
-    setNewPost({ ...newPost, coordinates: JSON.stringify({ lat, lng }) });
+    const mapsLink = `https://www.google.com/maps?q=${lat},${lng}`;
+    setNewPost({ ...newPost, coordinates: mapsLink });
   };
 
   const handlePost = async () => {
     const { title, description, image, location_name, coordinates } = newPost;
 
     if (!image || !description) {
-      alert('La imagen y la descripción son obligatorias');
+      toast.error('La imagen y la descripción son obligatorias');
       return;
     }
 
@@ -74,7 +85,7 @@ const Wall = () => {
       });
 
       if (res.data.success) {
-        alert('Publicación creada con éxito');
+        toast.success('Publicación creada con éxito');
         setShowForm(false);
         setNewPost({
           title: '',
@@ -83,53 +94,37 @@ const Wall = () => {
           location_name: '',
           coordinates: null,
         });
+        setSelectedLocation(null);
         fetchPosts();
       }
     } catch (err) {
       console.error('Error al crear post', err);
-      alert('Error al crear la publicación');
+      toast.error('Error al crear la publicación');
     }
   };
 
-  const fetchLikes = async () => {
-  try {
-    const res = await axios.get('http://localhost:3000/posts');
-    setPosts(res.data);
+  const handleLike = async (postId) => {
+    try {
+      const userId = localStorage.getItem('userId');
+      await axios.post(`http://localhost:3000/posts/${postId}/like`, { userId });
 
-    const likesData = {};
-    for (const post of res.data) {
-      const likeRes = await axios.get(`http://localhost:3000/posts/${post.post_id}/likes`);
-      likesData[post.post_id] = likeRes.data.likes;
+      const updatedLikeRes = await axios.get(`http://localhost:3000/posts/${postId}/likes`);
+      setLikes(prev => ({ ...prev, [postId]: updatedLikeRes.data.likes }));
+    } catch (err) {
+      console.error('Error al dar like', err);
     }
-    setLikes(likesData);
-  } catch (err) {
-    console.error('Error al cargar likes', err);
-  }
-};
-const handleLike = async (postId) => {
-  try {
-    const userId = localStorage.getItem('userId');
-    const res = await axios.post(`http://localhost:3000/posts/${postId}/like`, { userId });
-    
-    // Actualizar conteo después del like
-    const updatedLikeRes = await axios.get(`http://localhost:3000/posts/${postId}/likes`);
-    setLikes(prev => ({ ...prev, [postId]: updatedLikeRes.data.likes }));
-  } catch (err) {
-    console.error('Error al dar like', err);
-  }
-};
-const handleShare = (postId) => {
-  const shareUrl = `${window.location.origin}/posts/${postId}`; // o personalízalo
-  navigator.clipboard.writeText(shareUrl)
-    .then(() => alert('¡Enlace copiado al portapapeles!'))
-    .catch(err => console.error('Error al copiar', err));
-};
+  };
 
-
-
+  const handleShare = (postId) => {
+    const shareUrl = `${window.location.origin}/posts/${postId}`;
+    navigator.clipboard.writeText(shareUrl)
+      .then(() => toast.info('¡Enlace copiado al portapapeles!'))
+      .catch(err => console.error('Error al copiar', err));
+  };
 
   return (
     <div className="container mt-4">
+      {/* NO ToastContainer aquí */}
       <button className="btn btn-success mb-3" onClick={() => setShowForm(true)}>➕ Publicar</button>
 
       {showForm && (
@@ -154,7 +149,7 @@ const handleShare = (postId) => {
                 <textarea name="description" placeholder="Comentario" rows="3" className="form-control mb-2" value={newPost.description} onChange={handleInputChange} />
                 <input type="text" name="location_name" placeholder="Lugar (opcional)" className="form-control mb-2" value={newPost.location_name} onChange={handleInputChange} />
 
-                <LoadScript googleMapsApiKey="TU_API_KEY">
+                <LoadScript googleMapsApiKey="AIzaSyCsagLV-v0XqMHrCBxkcdzWTWMa7h_WkZI">
                   <GoogleMap
                     mapContainerStyle={containerStyle}
                     center={center}
@@ -189,7 +184,15 @@ const handleShare = (postId) => {
             <h5>{post.title}</h5>
             <p>{post.description}</p>
             {post.location_name && <p><strong>Ubicación:</strong> {post.location_name}</p>}
-            {post.coordinates && <p><strong>Coordenadas:</strong> {post.coordinates}</p>}
+            {post.coordinates && (
+              <p>
+                <strong>Ubicación en mapa:</strong>{' '}
+                <a href={post.coordinates} target="_blank" rel="noopener noreferrer">
+                  Ver en Google Maps
+                </a>
+              </p>
+            )}
+
             <div className="d-flex gap-3">
               <button className="btn btn-outline-danger btn-sm" onClick={() => handleLike(post.post_id)}>
                 ❤️ Like ({likes[post.post_id] || 0})

@@ -69,22 +69,23 @@ app.post('/register', (req, res) => {
 
   // Encriptar y guardar
   bcrypt.hash(password, 10, (err, hash) => {
+  if (err) {
+    return res.status(500).json({ message: 'Error al encriptar' });
+  }
+
+  const query = 'INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)';
+  db.query(query, [name.trim(), email, hash, 'user'], (err, result) => {
     if (err) {
-      return res.status(500).json({ message: 'Error al encriptar' });
+      if (err.code === 'ER_DUP_ENTRY') {
+        return res.status(400).json({ message: 'Email ya existe' });
+      }
+      return res.status(500).json({ message: 'Error en base de datos' });
     }
 
-    const query = 'INSERT INTO users (name, email, password) VALUES (?, ?, ?)';
-    db.query(query, [name.trim(), email, hash], (err, result) => {
-      if (err) {
-        if (err.code === 'ER_DUP_ENTRY') {
-          return res.status(400).json({ message: 'Email ya existe' });
-        }
-        return res.status(500).json({ message: 'Error en base de datos' });
-      }
-
-      res.status(201).json({ message: 'Usuario registrado' });
-    });
+    res.status(201).json({ message: 'Usuario registrado' });
   });
+});
+
 });
 
 
@@ -391,6 +392,87 @@ app.get('/users-with-unread/:userId', (req, res) => {
   });
 });
 
+app.get('/api/continents', (req, res) => {
+  const sql = 'SELECT id, name FROM continents ORDER BY name';
+  db.query(sql, (err, results) => {
+    if (err) return res.status(500).json({ message: 'Error al obtener continentes' });
+    res.json(results);
+  });
+});
+app.get('/api/countries/:continentId', (req, res) => {
+  const continentId = req.params.continentId;
+  const sql = 'SELECT id, name FROM countries WHERE continent_id = ? ORDER BY name';
+  db.query(sql, [continentId], (err, results) => {
+    if (err) return res.status(500).json({ message: 'Error al obtener países' });
+    res.json(results);
+  });
+});
+app.get('/api/recommended-places/:countryId', (req, res) => {
+  const countryId = req.params.countryId;
+  const sql = 'SELECT id, title, image_url FROM recommended_places WHERE country_id = ? ORDER BY title';
+  db.query(sql, [countryId], (err, results) => {
+    if (err) return res.status(500).json({ message: 'Error al obtener lugares' });
+    res.json(results);
+  });
+});
+const placeStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'uploads/places');
+  },
+  filename: (req, file, cb) => {
+    cb(null, `${Date.now()}-${file.originalname}`);
+  }
+});
+
+const placeUpload = multer({ storage: placeStorage });
+
+app.post('/api/recommended-places/:countryId', placeUpload.single('image'), (req, res) => {
+  const { title } = req.body;
+  const country_id = req.params.countryId;
+
+  if (!title || !req.file) {
+    return res.status(400).json({ message: 'Faltan datos o imagen' });
+  }
+
+  const image_url = `/uploads/places/${req.file.filename}`;
+
+  db.query(
+    'INSERT INTO recommended_places (title, image_url, country_id) VALUES (?, ?, ?)',
+    [title, image_url, country_id],
+    (err, results) => {
+      if (err) return res.status(500).json({ error: 'Error en base de datos' });
+      res.json({ success: true });
+    }
+  );
+});
+
+app.post('/api/continents', (req, res) => {
+  const { name } = req.body;
+  if (!name) return res.status(400).json({ message: 'Nombre requerido' });
+
+  db.query('INSERT INTO continents (name) VALUES (?)', [name], (err, result) => {
+    if (err) return res.status(500).json({ message: 'Error en la base de datos' });
+    res.status(201).json({ id: result.insertId, name });
+  });
+});
+app.post('/api/countries', (req, res) => {
+  const { name, continent_id } = req.body;
+  if (!name || !continent_id) return res.status(400).json({ message: 'Faltan datos' });
+
+  db.query('INSERT INTO countries (name, continent_id) VALUES (?, ?)', [name, continent_id], (err, result) => {
+    if (err) return res.status(500).json({ message: 'Error al agregar país' });
+    res.status(201).json({ id: result.insertId, name });
+  });
+});
+app.post('/api/recommended-places', (req, res) => {
+  const { title, image_url, country_id } = req.body;
+  if (!title || !country_id) return res.status(400).json({ message: 'Faltan datos' });
+
+  db.query('INSERT INTO recommended_places (title, image_url, country_id) VALUES (?, ?, ?)', [title, image_url || null, country_id], (err, result) => {
+    if (err) return res.status(500).json({ message: 'Error al agregar lugar' });
+    res.status(201).json({ id: result.insertId, title });
+  });
+});
 
 
 

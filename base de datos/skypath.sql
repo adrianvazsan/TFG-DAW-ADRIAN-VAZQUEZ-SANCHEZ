@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 27-05-2025 a las 18:39:05
+-- Tiempo de generación: 28-05-2025 a las 15:15:59
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -82,6 +82,27 @@ INSERT INTO `countries` (`id`, `continent_id`, `name`) VALUES
 -- --------------------------------------------------------
 
 --
+-- Estructura de tabla para la tabla `follows`
+--
+
+CREATE TABLE `follows` (
+  `follower_id` int(11) NOT NULL,
+  `followed_id` int(11) NOT NULL,
+  `followed_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `follows`
+--
+
+INSERT INTO `follows` (`follower_id`, `followed_id`, `followed_at`) VALUES
+(14, 1, '2025-05-28 13:06:39'),
+(14, 3, '2025-05-28 13:10:52'),
+(14, 11, '2025-05-28 13:14:22');
+
+-- --------------------------------------------------------
+
+--
 -- Estructura de tabla para la tabla `messages`
 --
 
@@ -104,7 +125,7 @@ INSERT INTO `messages` (`message_id`, `sender_id`, `receiver_id`, `message`, `se
 (3, 1, 8, 'adios', '2025-05-21 15:16:13', 0),
 (4, 1, 14, 'hola', '2025-05-21 17:30:31', 1),
 (5, 1, 3, 'hola', '2025-05-22 11:55:50', 0),
-(6, 10, 1, 'hola', '2025-05-22 11:57:24', 0),
+(6, 10, 14, 'hola', '2025-05-22 11:57:24', 1),
 (7, 11, 14, 'a', '2025-05-24 13:50:58', 1),
 (8, 12, 11, 'hola', '2025-05-24 14:56:37', 1),
 (9, 11, 14, 'hola', '2025-05-24 20:00:37', 1),
@@ -152,7 +173,8 @@ INSERT INTO `posts` (`post_id`, `user_id`, `title`, `description`, `image_url`, 
 (34, 11, 'a', 'a', '/uploads/post-1748271565251.jfif', '', 'null', '2025-05-26 16:59:25'),
 (35, 11, 'prueba ubicacion', 'dasda', '/uploads/post-1748272122881.jpg', '', '{\"lat\":40.41300913664324,\"lng\":-3.697492063095349}', '2025-05-26 17:08:42'),
 (36, 11, 'asa', 'ass', '/uploads/post-1748272298775.jpg', '', 'https://www.google.com/maps?q=38.94817299513324,-3.891185922901146', '2025-05-26 17:11:38'),
-(37, 14, 'aaa', 'aa', '/uploads/post-1748272892603.jpg', '', 'null', '2025-05-26 17:21:32');
+(37, 14, 'aaa', 'aa', '/uploads/post-1748272892603.jpg', '', 'null', '2025-05-26 17:21:32'),
+(38, 14, ' paisaje helado', 'sdadasdasdasdad', '/uploads/post-1748364047360.jpg', 'madird', 'https://www.google.com/maps?q=40.41999808561473,-3.6887454986572266', '2025-05-27 18:40:47');
 
 -- --------------------------------------------------------
 
@@ -176,10 +198,11 @@ INSERT INTO `ratings` (`rating_id`, `user_id`, `post_id`, `score`) VALUES
 (3, 14, 29, 1),
 (4, 14, 28, 1),
 (5, 14, 27, 1),
-(7, 14, 31, 1),
 (13, 11, 27, 1),
 (16, 11, 26, 1),
-(18, 11, 6, 1);
+(18, 11, 6, 1),
+(20, 14, 38, 1),
+(24, 14, 31, 1);
 
 -- --------------------------------------------------------
 
@@ -274,6 +297,13 @@ ALTER TABLE `countries`
   ADD KEY `continent_id` (`continent_id`);
 
 --
+-- Indices de la tabla `follows`
+--
+ALTER TABLE `follows`
+  ADD PRIMARY KEY (`follower_id`,`followed_id`),
+  ADD KEY `followed_id` (`followed_id`);
+
+--
 -- Indices de la tabla `messages`
 --
 ALTER TABLE `messages`
@@ -342,13 +372,13 @@ ALTER TABLE `messages`
 -- AUTO_INCREMENT de la tabla `posts`
 --
 ALTER TABLE `posts`
-  MODIFY `post_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=38;
+  MODIFY `post_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=39;
 
 --
 -- AUTO_INCREMENT de la tabla `ratings`
 --
 ALTER TABLE `ratings`
-  MODIFY `rating_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
+  MODIFY `rating_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
 
 --
 -- AUTO_INCREMENT de la tabla `recommended_places`
@@ -378,6 +408,13 @@ ALTER TABLE `comments`
 --
 ALTER TABLE `countries`
   ADD CONSTRAINT `countries_ibfk_1` FOREIGN KEY (`continent_id`) REFERENCES `continents` (`id`) ON DELETE CASCADE;
+
+--
+-- Filtros para la tabla `follows`
+--
+ALTER TABLE `follows`
+  ADD CONSTRAINT `follows_ibfk_1` FOREIGN KEY (`follower_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `follows_ibfk_2` FOREIGN KEY (`followed_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
 
 --
 -- Filtros para la tabla `messages`

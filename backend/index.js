@@ -377,20 +377,22 @@ app.get('/users-with-unread/:userId', (req, res) => {
   const sql = `
     SELECT u.id, u.name, u.profile_picture,
            COUNT(m.message_id) AS unreadCount
-    FROM users u
+    FROM follows f
+    JOIN users u ON u.id = f.followed_id
     LEFT JOIN messages m 
       ON u.id = m.sender_id 
      AND m.receiver_id = ? 
      AND m.is_read = 0
-    WHERE u.id != ?
+    WHERE f.follower_id = ?
     GROUP BY u.id
   `;
 
   db.query(sql, [userId, userId], (err, results) => {
-    if (err) return res.status(500).json({ error: 'Error al obtener usuarios con mensajes no leídos' });
+    if (err) return res.status(500).json({ error: 'Error al obtener chats de seguidos con mensajes' });
     res.json(results);
   });
 });
+
 
 app.get('/api/continents', (req, res) => {
   const sql = 'SELECT id, name FROM continents ORDER BY name';
@@ -471,6 +473,83 @@ app.post('/api/recommended-places', (req, res) => {
   db.query('INSERT INTO recommended_places (title, image_url, country_id) VALUES (?, ?, ?)', [title, image_url || null, country_id], (err, result) => {
     if (err) return res.status(500).json({ message: 'Error al agregar lugar' });
     res.status(201).json({ id: result.insertId, title });
+  });
+});
+
+// Seguir a un usuario
+app.post('/follow', (req, res) => {
+  const { followerId, followedId } = req.body;
+
+  if (!followerId || !followedId) {
+    return res.status(400).json({ message: 'Faltan datos' });
+  }
+
+  // Evitar seguirse a sí mismo
+  if (followerId === followedId) {
+    return res.status(400).json({ message: 'No puedes seguirte a ti mismo' });
+  }
+
+  const query = 'INSERT IGNORE INTO follows (follower_id, followed_id) VALUES (?, ?)';
+  db.query(query, [followerId, followedId], (err) => {
+    if (err) {
+      console.error('❌ Error al seguir usuario:', err);
+      return res.status(500).json({ message: 'Error en base de datos' });
+    }
+    res.json({ message: 'Ahora sigues a este usuario' });
+  });
+});
+
+// Obtener lista de seguidos por un usuario
+app.get('/following/:userId', (req, res) => {
+  const userId = req.params.userId;
+  const query = `
+    SELECT u.id, u.name, u.profile_picture
+    FROM follows f
+    JOIN users u ON u.id = f.followed_id
+    WHERE f.follower_id = ?
+  `;
+  db.query(query, [userId], (err, results) => {
+    if (err) return res.status(500).json({ message: 'Error al obtener seguidos' });
+    res.json(results);
+  });
+});
+
+// Obtener lista de seguidores de un usuario
+app.get('/followers/:userId', (req, res) => {
+  const userId = req.params.userId;
+  const query = `
+    SELECT u.id, u.name, u.profile_picture
+    FROM follows f
+    JOIN users u ON u.id = f.follower_id
+    WHERE f.followed_id = ?
+  `;
+  db.query(query, [userId], (err, results) => {
+    if (err) return res.status(500).json({ message: 'Error al obtener seguidores' });
+    res.json(results);
+  });
+});
+app.get('/api/following-list/:userId', (req, res) => {
+  const { userId } = req.params;
+  const sql = `SELECT followed_id FROM follows WHERE follower_id = ?`;
+  db.query(sql, [userId], (err, results) => {
+    if (err) return res.status(500).json({ message: 'Error al obtener seguidos' });
+
+    const followedIds = results.map(r => r.followed_id);
+    res.json(followedIds);
+  });
+});
+// Dejar de seguir
+app.post('/unfollow', (req, res) => {
+  const { followerId, followedId } = req.body;
+
+  if (!followerId || !followedId) {
+    return res.status(400).json({ message: 'Faltan datos' });
+  }
+
+  const sql = 'DELETE FROM follows WHERE follower_id = ? AND followed_id = ?';
+  db.query(sql, [followerId, followedId], (err) => {
+    if (err) return res.status(500).json({ message: 'Error al dejar de seguir' });
+    res.json({ success: true });
   });
 });
 

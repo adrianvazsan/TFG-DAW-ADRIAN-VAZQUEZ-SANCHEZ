@@ -61,10 +61,6 @@ function ChatPage() {
     <div className="chat-container">
       <div className="chat-sidebar">
         <h5 className="sidebar-title">Chats</h5>
-        <button onClick={fetchUsers} className="btn btn-sm btn-outline-secondary mb-2">
-          🔄 Actualizar chats
-        </button>
-
         {users.map(user => (
   <div
     key={user.id}

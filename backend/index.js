@@ -1,16 +1,16 @@
-const express = require('express');
-const mysql = require('mysql');
-const bcrypt = require('bcrypt');
-const cors = require('cors');
-const multer = require('multer');
-const path = require('path');
+const express = require('express'); // Framework para servidor web
+const mysql = require('mysql'); // Cliente MySQL
+const bcrypt = require('bcrypt'); // Librería para hashear contraseñas
+const cors = require('cors'); // Middleware para habilitar CORS
+const multer = require('multer'); // Middleware para manejo de archivos (multipart/form-data)
+const path = require('path'); // Utilidad para trabajar con rutas de archivos
 
 const app = express();
 const PORT = 3000;
 
 app.use(cors({
   origin: 'http://localhost:3001',
-  methods: ['GET', 'POST', 'PUT', 'OPTIONS'],
+  methods: ['GET', 'POST', 'PUT','DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'x-user-id']
 }));
 
@@ -89,7 +89,7 @@ app.post('/register', (req, res) => {
 });
 
 
-
+// Ruta para login
 app.post('/login', (req, res) => {
   const { email, password } = req.body;
 
@@ -131,7 +131,7 @@ app.get('/api/profile', (req, res) => {
     return res.status(400).json({ message: 'Falta el ID del usuario' });
   }
 
-  const sql = 'SELECT id, name, email, birthdate, location, profile_picture, bio FROM users WHERE id = ?';
+  const sql = 'SELECT id, name, email, birthdate, location, profile_picture, bio, role FROM users WHERE id = ?';
   db.query(sql, [userId], (err, results) => {
     if (err) {
       console.error(err);
@@ -140,7 +140,7 @@ app.get('/api/profile', (req, res) => {
     if (results.length === 0) {
       return res.status(404).json({ message: 'Usuario no encontrado' });
     }
-    res.json(results[0]);
+    res.json(results[0]); // ¡incluye el rol ahora!
   });
 });
 
@@ -167,7 +167,7 @@ const postStorage = multer.diskStorage({
 
 const postUpload = multer({ storage: postStorage });
 
-
+// Actualizar perfil
 app.put('/api/profile', upload.single('profile_picture'), (req, res) => {
   const { userId, name, birthdate, location, bio } = req.body;
   const profile_picture = req.file ? `/uploads/${req.file.filename}` : null;
@@ -290,7 +290,7 @@ app.post('/posts', postUpload.single('image'), (req, res) => {
     res.json({ success: true, postId: result.insertId });
   });
 });
-
+// Obtener publicaciones de un usuario específico
 app.post('/posts/:postId/like', (req, res) => {
   const { userId } = req.body;
   const postId = req.params.postId;
@@ -298,7 +298,7 @@ app.post('/posts/:postId/like', (req, res) => {
   if (!userId || !postId) {
     return res.status(400).json({ message: 'Faltan datos' });
   }
-
+// Verificar si ya existe un like de este usuario a esta publicación
   const checkQuery = `SELECT * FROM ratings WHERE user_id = ? AND post_id = ?`;
   db.query(checkQuery, [userId, postId], (err, result) => {
     if (err) return res.status(500).json({ message: 'Error en base de datos' });
@@ -321,7 +321,7 @@ app.post('/posts/:postId/like', (req, res) => {
   });
 });
 
-
+// Obtener cantidad de likes de una publicación
 app.get('/posts/:postId/likes', (req, res) => {
   const { postId } = req.params;
   const sql = `SELECT COUNT(*) AS likes FROM ratings WHERE post_id = ? AND score = 1`;
@@ -330,6 +330,17 @@ app.get('/posts/:postId/likes', (req, res) => {
     res.json(result[0]);
   });
 });
+// Eliminar publicación
+app.delete('/posts/:id', (req, res) => {
+  const postId = req.params.id;
+
+  const sql = 'DELETE FROM posts WHERE post_id = ?';
+  db.query(sql, [postId], (err) => {
+    if (err) return res.status(500).json({ message: 'Error al eliminar publicación' });
+    res.json({ success: true });
+  });
+});
+
 
 // Buscar usuarios por nombre
 app.get('/search-users', (req, res) => {
@@ -343,7 +354,7 @@ app.get('/search-users', (req, res) => {
     res.json(results);
   });
 });
-
+// Verificar si hay mensajes no leídos para el usuario
 app.get('/notifications/:userId', (req, res) => {
   const { userId } = req.params;
 
@@ -357,6 +368,7 @@ app.get('/notifications/:userId', (req, res) => {
     res.json({ unreadCount: result[0].unreadCount });
   });
 });
+// Marcar mensajes como leídos
 app.put('/messages/read/:receiverId/:senderId', (req, res) => {
   const { receiverId, senderId } = req.params;
   const sql = `
@@ -428,6 +440,7 @@ const placeStorage = multer.diskStorage({
 
 const placeUpload = multer({ storage: placeStorage });
 
+// Agregar lugar recomendado a un país específico
 app.post('/api/recommended-places/:countryId', placeUpload.single('image'), (req, res) => {
   const { title } = req.body;
   const country_id = req.params.countryId;
@@ -448,6 +461,7 @@ app.post('/api/recommended-places/:countryId', placeUpload.single('image'), (req
   );
 });
 
+// Agregar continente
 app.post('/api/continents', (req, res) => {
   const { name } = req.body;
   if (!name) return res.status(400).json({ message: 'Nombre requerido' });
@@ -457,6 +471,7 @@ app.post('/api/continents', (req, res) => {
     res.status(201).json({ id: result.insertId, name });
   });
 });
+// Agregar país
 app.post('/api/countries', (req, res) => {
   const { name, continent_id } = req.body;
   if (!name || !continent_id) return res.status(400).json({ message: 'Faltan datos' });
@@ -466,6 +481,7 @@ app.post('/api/countries', (req, res) => {
     res.status(201).json({ id: result.insertId, name });
   });
 });
+// Agregar lugar recomendado
 app.post('/api/recommended-places', (req, res) => {
   const { title, image_url, country_id } = req.body;
   if (!title || !country_id) return res.status(400).json({ message: 'Faltan datos' });
@@ -473,6 +489,32 @@ app.post('/api/recommended-places', (req, res) => {
   db.query('INSERT INTO recommended_places (title, image_url, country_id) VALUES (?, ?, ?)', [title, image_url || null, country_id], (err, result) => {
     if (err) return res.status(500).json({ message: 'Error al agregar lugar' });
     res.status(201).json({ id: result.insertId, title });
+  });
+});
+// Eliminar continente
+app.delete('/api/continents/:id', (req, res) => {
+  const { id } = req.params;
+  db.query('DELETE FROM continents WHERE id = ?', [id], (err) => {
+    if (err) return res.status(500).json({ message: 'Error al eliminar continente' });
+    res.json({ success: true });
+  });
+});
+
+// Eliminar país
+app.delete('/api/countries/:id', (req, res) => {
+  const { id } = req.params;
+  db.query('DELETE FROM countries WHERE id = ?', [id], (err) => {
+    if (err) return res.status(500).json({ message: 'Error al eliminar país' });
+    res.json({ success: true });
+  });
+});
+
+// Eliminar lugar recomendado
+app.delete('/api/recommended-places/:id', (req, res) => {
+  const { id } = req.params;
+  db.query('DELETE FROM recommended_places WHERE id = ?', [id], (err) => {
+    if (err) return res.status(500).json({ message: 'Error al eliminar lugar' });
+    res.json({ success: true });
   });
 });
 
@@ -488,7 +530,7 @@ app.post('/follow', (req, res) => {
   if (followerId === followedId) {
     return res.status(400).json({ message: 'No puedes seguirte a ti mismo' });
   }
-
+  // Verificar si ya se sigue
   const query = 'INSERT IGNORE INTO follows (follower_id, followed_id) VALUES (?, ?)';
   db.query(query, [followerId, followedId], (err) => {
     if (err) {
@@ -528,6 +570,7 @@ app.get('/followers/:userId', (req, res) => {
     res.json(results);
   });
 });
+// Obtener lista de IDs de seguidos por un usuario
 app.get('/api/following-list/:userId', (req, res) => {
   const { userId } = req.params;
   const sql = `SELECT followed_id FROM follows WHERE follower_id = ?`;

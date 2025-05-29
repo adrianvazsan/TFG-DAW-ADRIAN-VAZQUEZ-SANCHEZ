@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { GoogleMap, LoadScript, Marker } from '@react-google-maps/api';
-import { toast } from 'react-toastify'; // Sólo importamos toast, no ToastContainer aquí
+import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import './Wall.css';
 import profilePic from '../assets/bad.png';
 
 const containerStyle = { width: '100%', height: '300px' };
-const center = { lat: 40.4168, lng: -3.7038 }; // Madrid de ejemplo
+const center = { lat: 40.4168, lng: -3.7038 };
 
 const Wall = () => {
   const [posts, setPosts] = useState([]);
@@ -21,10 +21,28 @@ const Wall = () => {
   });
   const [showForm, setShowForm] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [postToDelete, setPostToDelete] = useState(null);
 
   useEffect(() => {
     fetchPosts();
+    checkIfAdmin();
   }, []);
+
+  const checkIfAdmin = async () => {
+    const userId = localStorage.getItem('userId');
+    if (!userId) return;
+
+    try {
+      const res = await axios.get('http://localhost:3000/api/profile', {
+        headers: { 'x-user-id': userId }
+      });
+      if (res.data.role === 'admin') setIsAdmin(true);
+    } catch {
+      setIsAdmin(false);
+    }
+  };
 
   const fetchPosts = async () => {
     try {
@@ -115,6 +133,25 @@ const Wall = () => {
     }
   };
 
+  const handleDeleteClick = (postId) => {
+    setPostToDelete(postId);
+    setShowConfirmModal(true);
+  };
+
+  const confirmDeletePost = async () => {
+    try {
+      await axios.delete(`http://localhost:3000/posts/${postToDelete}`);
+      toast.success('Publicación eliminada');
+      fetchPosts();
+    } catch (err) {
+      console.error('Error al eliminar publicación', err);
+      toast.error('Error al eliminar la publicación');
+    } finally {
+      setShowConfirmModal(false);
+      setPostToDelete(null);
+    }
+  };
+
   const handleShare = (postId) => {
     const shareUrl = `${window.location.origin}/posts/${postId}`;
     navigator.clipboard.writeText(shareUrl)
@@ -124,7 +161,6 @@ const Wall = () => {
 
   return (
     <div className="container mt-4">
-      {/* NO ToastContainer aquí */}
       <button className="btn btn-success mb-3" onClick={() => setShowForm(true)}>➕ Publicar</button>
 
       {showForm && (
@@ -197,13 +233,36 @@ const Wall = () => {
               <button className="btn btn-outline-danger btn-sm" onClick={() => handleLike(post.post_id)}>
                 ❤️ Like ({likes[post.post_id] || 0})
               </button>
-              <button className="btn btn-outline-primary btn-sm" onClick={() => handleShare(post.post_id)}>
-                🔗 Compartir
-              </button>
+              {isAdmin && (
+                <button className="btn btn-outline-danger btn-sm" onClick={() => handleDeleteClick(post.post_id)}>
+                  🗑️ Eliminar
+                </button>
+              )}
             </div>
           </div>
         </div>
       ))}
+
+      {/* Modal de confirmación */}
+      {showConfirmModal && (
+        <div className="modal fade show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+          <div className="modal-dialog">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">Confirmar acción</h5>
+                <button className="btn-close" onClick={() => setShowConfirmModal(false)} />
+              </div>
+              <div className="modal-body">
+                ¿Estás seguro de que quieres eliminar esta publicación?
+              </div>
+              <div className="modal-footer">
+                <button className="btn btn-secondary" onClick={() => setShowConfirmModal(false)}>Cancelar</button>
+                <button className="btn btn-danger" onClick={confirmDeletePost}>Sí, eliminar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

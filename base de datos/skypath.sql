@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 28-05-2025 a las 15:15:59
+-- Tiempo de generación: 29-05-2025 a las 17:56:30
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -54,7 +54,8 @@ INSERT INTO `continents` (`id`, `name`) VALUES
 (4, 'africa'),
 (3, 'America'),
 (2, 'Asia'),
-(1, 'Europa');
+(1, 'Europa'),
+(6, 'oceania');
 
 -- --------------------------------------------------------
 
@@ -169,10 +170,8 @@ INSERT INTO `posts` (`post_id`, `user_id`, `title`, `description`, `image_url`, 
 (30, 11, 'sdas', 'asdasda', '/uploads/post-1748089142607.png', 'jerez', 'null', '2025-05-24 14:19:02'),
 (31, 12, 'dssssssssssss', 'sadddddddddddddd', '/uploads/post-1748089226121.png', 'madrid', 'null', '2025-05-24 14:20:26'),
 (32, 11, 'asdasd', 'asdasd', '/uploads/post-1748271299516.jpg', 'sada', 'null', '2025-05-26 16:54:59'),
-(33, 11, 'a', 'a', '/uploads/post-1748271547338.jpg', '', 'null', '2025-05-26 16:59:07'),
 (34, 11, 'a', 'a', '/uploads/post-1748271565251.jfif', '', 'null', '2025-05-26 16:59:25'),
 (35, 11, 'prueba ubicacion', 'dasda', '/uploads/post-1748272122881.jpg', '', '{\"lat\":40.41300913664324,\"lng\":-3.697492063095349}', '2025-05-26 17:08:42'),
-(36, 11, 'asa', 'ass', '/uploads/post-1748272298775.jpg', '', 'https://www.google.com/maps?q=38.94817299513324,-3.891185922901146', '2025-05-26 17:11:38'),
 (37, 14, 'aaa', 'aa', '/uploads/post-1748272892603.jpg', '', 'null', '2025-05-26 17:21:32'),
 (38, 14, ' paisaje helado', 'sdadasdasdasdad', '/uploads/post-1748364047360.jpg', 'madird', 'https://www.google.com/maps?q=40.41999808561473,-3.6887454986572266', '2025-05-27 18:40:47');
 
@@ -225,8 +224,7 @@ INSERT INTO `recommended_places` (`id`, `country_id`, `title`, `image_url`) VALU
 (1, 1, 'Madrid', 'https://via.placeholder.com/200?text=Madrid'),
 (2, 1, 'Barcelona', 'https://via.placeholder.com/200?text=Barcelona'),
 (3, 2, 'París', 'https://via.placeholder.com/200?text=Paris'),
-(4, 3, 'Cruce de Shibuya', 'https://via.placeholder.com/200?text=Shibuya'),
-(5, 5, 'paisaje 1', '/uploads/places/1748277189425-paisaje1.jpg');
+(4, 3, 'Cruce de Shibuya', 'https://via.placeholder.com/200?text=Shibuya');
 
 -- --------------------------------------------------------
 
@@ -263,7 +261,7 @@ INSERT INTO `users` (`id`, `name`, `email`, `password`, `birthdate`, `location`,
 (10, 'Joya', 'PaolaHM1999@gmail.com', '$2b$10$I5l1VwiDqNkdhAVpjY/zC.oF6kRXce8gB71InTgMT/41LkVZUWO5m', '2025-06-11', 'sevilla', '/uploads/profile-1748108533739.jpg', 'Programador frontend', '2025-05-22 11:50:43', 'user'),
 (11, 'barea', 'JuanmaGamex@hotmail.com', '$2b$10$8TN.S17hsc9g1DqS0WUxVeG0GlpDYdQ1IIroxWsvdpAZxGS8Jk81a', '1978-03-16', 'madrid', '/uploads/profile-1748088153781.jpg', 'jkcvjkchkjhhhhhhhhhhhhhc', '2025-05-24 12:43:30', 'user'),
 (12, 'alejandro', 'alejandro@gmail.com', '$2b$10$C63bYvzcRJcuuE26uY13auc2DxIB3yv.UhztPOSrVfVAkYppGc38W', NULL, NULL, '/uploads/profile-1748091364355.jpg', NULL, '2025-05-24 13:02:23', 'user'),
-(14, 'dani', '222demayodel2002@gmail.com', '$2b$10$CP3dQiq0l/lGK/Hw13yeUeOQdp.jICkQRD2kfNv9YiYK4AqXA0TNy', '2000-07-21', 'sevilla', '/uploads/profile2.jpg', '\"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.\"', '2025-05-24 19:37:43', 'user'),
+(14, 'dani', '222demayodel2002@gmail.com', '$2b$10$CP3dQiq0l/lGK/Hw13yeUeOQdp.jICkQRD2kfNv9YiYK4AqXA0TNy', '2000-07-21', 'sevilla', '/uploads/profile2.jpg', '\"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.\"', '2025-05-24 19:37:43', 'admin'),
 (25, 'Ana Torres', 'ana1@example.com', '$2b$10$CZZyyKU4v5M97MpRLPnKcOH3lcbWlW9z3REaS7WQ7rZaP.CQey0ZK', '1992-05-10', 'Madrid', '/uploads/profile-1748108533739.jpg', 'Amante de los viajes y la fotografía.', '2025-05-24 19:52:26', 'user'),
 (26, 'Carlos Díaz', 'carlos1@example.com', '$2b$10$CZZyyKU4v5M97MpRLPnKcOH3lcbWlW9z3REaS7WQ7rZaP.CQey0ZK', '1987-11-23', 'Barcelona', '/uploads/profile-1748108533739.jpg', 'Explorador urbano y runner.', '2025-05-24 19:52:26', 'user'),
 (27, 'Lucía Gómez', 'lucia1@example.com', '$2b$10$CZZyyKU4v5M97MpRLPnKcOH3lcbWlW9z3REaS7WQ7rZaP.CQey0ZK', '1995-07-18', 'Sevilla', '/uploads/profile3.jpg', 'Diseñadora gráfica freelance.', '2025-05-24 19:52:26', 'admin'),
@@ -354,13 +352,13 @@ ALTER TABLE `comments`
 -- AUTO_INCREMENT de la tabla `continents`
 --
 ALTER TABLE `continents`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
 
 --
 -- AUTO_INCREMENT de la tabla `countries`
 --
 ALTER TABLE `countries`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT de la tabla `messages`
@@ -372,19 +370,19 @@ ALTER TABLE `messages`
 -- AUTO_INCREMENT de la tabla `posts`
 --
 ALTER TABLE `posts`
-  MODIFY `post_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=39;
+  MODIFY `post_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=40;
 
 --
 -- AUTO_INCREMENT de la tabla `ratings`
 --
 ALTER TABLE `ratings`
-  MODIFY `rating_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
+  MODIFY `rating_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
 
 --
 -- AUTO_INCREMENT de la tabla `recommended_places`
 --
 ALTER TABLE `recommended_places`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT de la tabla `users`

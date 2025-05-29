@@ -51,35 +51,45 @@ export default function RegisterForm() {
         <form onSubmit={handleSubmit} className="p-4 border rounded shadow-sm bg-light">
           <h4 className="mb-3 text-center">Registro</h4>
 
-          <input
-            type="text"
-            name="name"
-            placeholder="Nombre"
-            className="form-control mb-3"
-            value={form.name}
-            onChange={handleChange}
-            required
-          />
+              <label className="form-label">
+                  Nombre <span className="text-danger">*</span>
+                </label>
+                <input
+                  type="text"
+                  name="name"
+                  placeholder="Nombre"
+                  className="form-control mb-3"
+                  value={form.name}
+                  onChange={handleChange}
+                  required
+                />
 
-          <input
-            type="email"
-            name="email"
-            placeholder="Email"
-            className="form-control mb-3"
-            value={form.email}
-            onChange={handleChange}
-            required
-          />
+                <label className="form-label">
+                  Email <span className="text-danger">*</span>
+                </label>
+                <input
+                  type="email"
+                  name="email"
+                  placeholder="Email"
+                  className="form-control mb-3"
+                  value={form.email}
+                  onChange={handleChange}
+                  required
+                />
 
-          <input
-            type="password"
-            name="password"
-            placeholder="Contraseña"
-            className="form-control mb-4"
-            value={form.password}
-            onChange={handleChange}
-            required
-          />
+                <label className="form-label">
+                  Contraseña <span className="text-danger">*</span>
+                </label>
+                <input
+                  type="password"
+                  name="password"
+                  placeholder="Contraseña"
+                  className="form-control mb-4"
+                  value={form.password}
+                  onChange={handleChange}
+                  required
+                />
+
 
           <button type="submit" className="btn btn-primary w-100" disabled={loading}>
             {loading ? 'Registrando...' : 'Registrarse'}

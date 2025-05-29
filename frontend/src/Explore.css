@@ -39,3 +39,45 @@
   outline: none;
   box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
 }
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.col-md-4 {
+  display: flex;
+}
+
+.card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 350px; /* altura fija para uniformidad */
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.card-img-top {
+  height: 180px;
+  width: 100%;
+  object-fit: cover; /* mantiene proporción y recorta si es necesario */
+}
+
+.card-body {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 1rem;
+}
+
+.card-text {
+  font-weight: 600;
+  font-size: 1.1rem;
+  height: 3rem; /* limita la altura del texto para evitar desbordes */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

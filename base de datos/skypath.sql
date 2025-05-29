@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 29-05-2025 a las 17:56:30
+-- Tiempo de generación: 30-05-2025 a las 01:38:17
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -78,7 +78,8 @@ INSERT INTO `countries` (`id`, `continent_id`, `name`) VALUES
 (2, 1, 'Francia'),
 (3, 2, 'Japón'),
 (4, 3, 'Argentina'),
-(5, 4, 'congo');
+(10, 4, 'marruecos'),
+(11, 6, 'Australia');
 
 -- --------------------------------------------------------
 
@@ -99,7 +100,8 @@ CREATE TABLE `follows` (
 INSERT INTO `follows` (`follower_id`, `followed_id`, `followed_at`) VALUES
 (14, 1, '2025-05-28 13:06:39'),
 (14, 3, '2025-05-28 13:10:52'),
-(14, 11, '2025-05-28 13:14:22');
+(14, 11, '2025-05-28 13:14:22'),
+(14, 12, '2025-05-29 23:35:11');
 
 -- --------------------------------------------------------
 
@@ -221,10 +223,13 @@ CREATE TABLE `recommended_places` (
 --
 
 INSERT INTO `recommended_places` (`id`, `country_id`, `title`, `image_url`) VALUES
-(1, 1, 'Madrid', 'https://via.placeholder.com/200?text=Madrid'),
-(2, 1, 'Barcelona', 'https://via.placeholder.com/200?text=Barcelona'),
-(3, 2, 'París', 'https://via.placeholder.com/200?text=Paris'),
-(4, 3, 'Cruce de Shibuya', 'https://via.placeholder.com/200?text=Shibuya');
+(3, 2, 'París', '/uploads/places/1748561664863-paris.jpg'),
+(4, 3, 'Cruce de Shibuya', '/uploads/places/1748561632568-Cruce-de-Shibuya-por-la-noche.webp'),
+(8, 1, 'barcelona', '/uploads/places/1748561084630-292821-3840x2160-desktop-4k-barcelona-city-background-photo.jpg'),
+(9, 1, 'Madrid', '/uploads/places/1748561090977-vintage-madrid-golden-sunset-muafyzw5i4jba4m5.jpg'),
+(11, 10, 'marrakech', '/uploads/places/1748561274591-istockphoto-1186702515-612x612.jpg'),
+(12, 4, 'Mar del Plata', '/uploads/places/1748561319759-8916cf26e477542ca7ccb20f0ed988c5.jpg'),
+(13, 11, 'Sídney', '/uploads/places/1748561604575-photo-1528072164453-f4e8ef0d475a.jfif');
 
 -- --------------------------------------------------------
 
@@ -358,7 +363,7 @@ ALTER TABLE `continents`
 -- AUTO_INCREMENT de la tabla `countries`
 --
 ALTER TABLE `countries`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT de la tabla `messages`
@@ -370,7 +375,7 @@ ALTER TABLE `messages`
 -- AUTO_INCREMENT de la tabla `posts`
 --
 ALTER TABLE `posts`
-  MODIFY `post_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=40;
+  MODIFY `post_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=41;
 
 --
 -- AUTO_INCREMENT de la tabla `ratings`
@@ -382,7 +387,7 @@ ALTER TABLE `ratings`
 -- AUTO_INCREMENT de la tabla `recommended_places`
 --
 ALTER TABLE `recommended_places`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT de la tabla `users`

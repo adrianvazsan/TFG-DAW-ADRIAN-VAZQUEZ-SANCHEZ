@@ -20,6 +20,11 @@ const Explore = () => {
   const [newPlaceTitle, setNewPlaceTitle] = useState('');
   const [newPlaceImage, setNewPlaceImage] = useState(null);
 
+  const [editingPlace, setEditingPlace] = useState(null);
+  const [editedTitle, setEditedTitle] = useState('');
+  const [editedImage, setEditedImage] = useState(null);
+
+
   const fetchContinents = () => {
     fetch('http://localhost:3000/api/continents')
       .then(res => res.json())
@@ -146,6 +151,42 @@ const handleAddCountry = () => {
       })
       .catch(err => toast.error(err));
   };
+ const handleEditPlace = (place) => {
+  setEditingPlace(place);
+  setEditedTitle(place.title);
+  setEditedImage(null);
+};
+
+
+
+const submitEditPlace = () => {
+  if (!editedTitle.trim()) {
+    return toast.error('Título requerido');
+  }
+
+  const formData = new FormData();
+  formData.append('title', editedTitle);
+  if (editedImage) {
+    formData.append('image', editedImage);
+  }
+
+  fetch(`http://localhost:3000/api/recommended-places/${editingPlace.id}/edit`, {
+    method: 'PUT',
+    body: formData,
+  })
+    .then(res => res.ok ? fetch(`http://localhost:3000/api/recommended-places/${selectedCountry}`) : Promise.reject('Error'))
+    .then(res => res.json())
+    .then(data => {
+      setPlaces(data);
+      toast.success('Lugar editado');
+      setEditingPlace(null);
+      setEditedTitle('');
+      setEditedImage(null);
+    })
+    .catch(err => toast.error('Error al editar lugar'));
+};
+
+
 
   const handleDeleteCountry = id => {
     if (!window.confirm('¿Eliminar país?')) return;
@@ -216,7 +257,20 @@ const handleAddCountry = () => {
                   <div className="card-body text-center">
                     <p className="card-text">{place.title}</p>
                     {isAdmin && (
-                      <button onClick={() => handleDeletePlace(place.id)} className="btn btn-sm btn-danger mt-2">Eliminar lugar</button>
+                      <div className="d-flex justify-content-center gap-2 mt-2">
+                        <button
+                          onClick={() => handleEditPlace(place)}
+                          className="btn btn-sm btn-warning"
+                        >
+                          Editar
+                        </button>
+                        <button
+                          onClick={() => handleDeletePlace(place.id)}
+                          className="btn btn-sm btn-danger"
+                        >
+                          Eliminar
+                        </button>
+                      </div>
                     )}
                   </div>
                 </div>
@@ -331,6 +385,45 @@ const handleAddCountry = () => {
     </div>
   </div>
 )}
+
+{editingPlace && (
+  <div className="modal fade show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+    <div className="modal-dialog">
+      <div className="modal-content">
+        <div className="modal-header">
+          <h5 className="modal-title">Editar Lugar</h5>
+          <button type="button" className="btn-close" onClick={() => setEditingPlace(null)}></button>
+        </div>
+        <div className="modal-body">
+          <div className="mb-3">
+            <label className="form-label">Nuevo título</label>
+            <input
+              type="text"
+              className="form-control"
+              value={editedTitle}
+              onChange={e => setEditedTitle(e.target.value)}
+            />
+          </div>
+          <div className="mb-3">
+            <label className="form-label">Nueva imagen (opcional)</label>
+            <input
+              type="file"
+              className="form-control"
+              accept="image/*"
+              onChange={e => setEditedImage(e.target.files[0])}
+            />
+          </div>
+        </div>
+        <div className="modal-footer">
+          <button className="btn btn-secondary" onClick={() => setEditingPlace(null)}>Cancelar</button>
+          <button className="btn btn-primary" onClick={submitEditPlace}>Guardar cambios</button>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
+
+
 
     </div>
   );

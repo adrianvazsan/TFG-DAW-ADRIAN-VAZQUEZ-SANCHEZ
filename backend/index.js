@@ -517,6 +517,39 @@ app.delete('/api/recommended-places/:id', (req, res) => {
     res.json({ success: true });
   });
 });
+// Editar lugar recomendado
+app.put('/api/recommended-places/:id/edit', placeUpload.single('image'), (req, res) => {
+  const { id } = req.params;
+  const { title } = req.body;
+
+  if (!title?.trim()) {
+    return res.status(400).json({ message: 'El título es requerido' });
+  }
+
+  const updateFields = [];
+  const values = [];
+
+  updateFields.push('title = ?');
+  values.push(title.trim());
+
+  if (req.file) {
+    const image_url = `/uploads/places/${req.file.filename}`;
+    updateFields.push('image_url = ?');
+    values.push(image_url);
+  }
+
+  values.push(id); // Para el WHERE
+
+  const sql = `UPDATE recommended_places SET ${updateFields.join(', ')} WHERE id = ?`;
+  db.query(sql, values, (err, result) => {
+    if (err) {
+      console.error('❌ Error al actualizar lugar:', err);
+      return res.status(500).json({ message: 'Error en base de datos' });
+    }
+
+    res.json({ success: true, message: 'Lugar actualizado correctamente' });
+  });
+});
 
 // Seguir a un usuario
 app.post('/follow', (req, res) => {
